@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Smart Board</title>
+        <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+    </head>
+    <body>
+        <canvas id="board" width="1080" height="680" ></canvas>
+        <div id="todo">
+            <div id="todo-list"></div>
+            <form id="command">
+                <input id="input" type="text" size=32 />
+                <button type="button" onclick="addTask(document.getElementById('input').value);">Add</button>
+            </form>
+        </div>
+        <script src="js/script.js" type="text/javascript"></script>
+        <script type="text/javascript">
+
+            setInterval(update, 1000 / FPS);
+
+        </script>
+    </body>
+</html>

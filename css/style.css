@@ -1,0 +1,33 @@
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+body {
+    font-size: 100%;
+}
+
+canvas {
+    display: block;
+    float: left;
+
+}
+
+#todo {
+    display: block;
+    float: left;
+    width: 269px;
+    height: 680px;
+    
+}
+
+#todo-list {
+    display: block;
+    width: 100%;
+    height: 650px;
+    overflow-y: scroll;
+}
+
+#todo form {
+    padding: 3px;
+}
