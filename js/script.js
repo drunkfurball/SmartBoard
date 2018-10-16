@@ -1,6 +1,7 @@
 const FPS = 30; // number of updates per second
 const CLOCK_RADIUS = 100; // Sets the size of the clock
 const DAYS_OF_THE_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; // array of days for word calendar
+const DAYS_ABBREVIATED = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MONTHS_OF_THE_YEAR = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; // array of months for word calendar
 const DAYS_OF_THE_MONTH = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]; // array of dates for word calendar
 const CALENDAR = [[ 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7],[ 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14],[ 9,10,11,12,13,14,15,16,17,18,19,20,21],
@@ -12,7 +13,7 @@ const PIXEL_RADIUS = 5;
 const BUTTON_SIZE = 20; // pen selection button size
 const BUTTON_OFFSET_X = 440;
 const BUTTON_OFFSET_Y = 570;
-const CALENDAR_ORIGIN = {x:12, y:270}; // top left of full calendar
+const CALENDAR_ORIGIN = {x:12, y:285}; // top left of full calendar
 const CALENDAR_DAY_WIDTH = 24;//how big to draw the calendar boxes on the full calendar
 
 let canv = document.getElementById("board");
@@ -400,7 +401,30 @@ function drawCalendar() {
             dd = i + 1;
         }
     }
+    let wd = rightnow.getDay();
+    for (let i = 0; i < labels[0].boxes.length; i++) {
+        if (labels[0].boxes[i].x == 37 && labels[0].boxes[i].y == 202) {
+            wd = i;
+        }
+    }
     let display = makeCalendar(mm);
+    ctx.font = "8px Arial";
+    for (let i = 0; i < DAYS_ABBREVIATED.length; i++) {
+        if (wd == i) {
+            ctx.fillStyle = DEFAULT_BACKGROUND;
+        }
+        else {
+            ctx.fillStyle = COLORS[4];
+        }
+        ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_ORIGIN.y - (CALENDAR_DAY_WIDTH/2) - 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH/2);
+        if (wd == i) {
+            ctx.fillStyle = COLORS[4];
+        }
+        else {
+            ctx.fillStyle = DEFAULT_BACKGROUND;
+        }
+        ctx.fillText(DAYS_ABBREVIATED[i], CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y - (CALENDAR_DAY_WIDTH/4)); 
+    }
     ctx.font = "14px Arial";
     ctx.fillStyle = COLORS[4];
     ctx.fillRect(CALENDAR_ORIGIN.x, CALENDAR_ORIGIN.y, (CALENDAR_DAY_WIDTH + 1) * display[0].length + 1, (CALENDAR_DAY_WIDTH + 1) * display.length + 1);
