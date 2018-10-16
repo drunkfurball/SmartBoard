@@ -3,14 +3,8 @@ const CLOCK_RADIUS = 100; // Sets the size of the clock
 const DAYS_OF_THE_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]; // array of days for word calendar
 const MONTHS_OF_THE_YEAR = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; // array of months for word calendar
 const DAYS_OF_THE_MONTH = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]; // array of dates for word calendar
-const CALENDAR = [
-    [ 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7],
-    [ 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14],
-    [ 9,10,11,12,13,14,15,16,17,18,19,20,21],
-    [16,17,18,19,20,21,22,23,24,25,26,27,28],
-    [23,24,25,26,27,28,29,30,31, 0, 0, 0, 0],
-    [30,31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-]
+const CALENDAR = [[ 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7],[ 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14],[ 9,10,11,12,13,14,15,16,17,18,19,20,21],
+                [16,17,18,19,20,21,22,23,24,25,26,27,28],[23,24,25,26,27,28,29,30,31, 0, 0, 0, 0],[30,31, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 const COLORS = ["red", "orange", "yellow", "lime", "skyblue", "violet", "black", "white"];
 const DEFAULT_PEN = COLORS[6]; // sets the default starting pen color
 const DEFAULT_BACKGROUND = COLORS[7];
@@ -18,6 +12,8 @@ const PIXEL_RADIUS = 5;
 const BUTTON_SIZE = 20; // pen selection button size
 const BUTTON_OFFSET_X = 440;
 const BUTTON_OFFSET_Y = 570;
+const CALENDAR_ORIGIN = {x:12, y:270}; // top left of full calendar
+const CALENDAR_DAY_WIDTH = 24;//how big to draw the calendar boxes on the full calendar
 
 let canv = document.getElementById("board");
 let ctx = canv.getContext("2d");
@@ -26,7 +22,6 @@ let label_dragging = false;
 let pen_selecting = false;
 let rightnow;
 let todo_list = [];
-
 
 //sets up the clock
 let radius = CLOCK_RADIUS * 0.90;
@@ -77,16 +72,13 @@ function updateToDo() {
 }
 
 function addTask(descrip) {
-    
     let task = {
         color: selected_pen,
         description: descrip
     };
-
     todo_list.push(task);
     document.getElementById("input").value = "";
     updateToDo();
-
 }
 
 function update() { //everything that needs to be drawn in every frame
@@ -94,10 +86,10 @@ function update() { //everything that needs to be drawn in every frame
     drawLines();
     drawClock();
     drawWordCalendar();
+    rightnow = new Date();
+    drawCalendar();
     drawLabels();
     drawPenButtons();
-    rightnow = new Date();
-
 }
 
 function clearBoard() {
@@ -133,16 +125,13 @@ function drawTime(ctx, radius) {
     let hour = now.getHours();
     let minute = now.getMinutes();
     let second = now.getSeconds();
-    
     //hour
     hour = hour % 12;
     hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI/(360 * 60));
     drawHand(ctx, hour, radius * 0.5, radius * 0.07);
-    
     //minute
     minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
     drawHand(ctx, minute, radius * 0.8, radius * 0.07);
-    
     //second
     second = (second * Math.PI/30);
     drawHand(ctx, second, radius * 0.9, radius * 0.02);
@@ -222,9 +211,7 @@ function drawPenButtons() {
             ctx.fillRect((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X - 2, BUTTON_OFFSET_Y - 2, BUTTON_SIZE + 4, BUTTON_SIZE + 4);
             ctx.fillStyle = "white";
             ctx.fillRect((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X - 1, BUTTON_OFFSET_Y - 1, BUTTON_SIZE + 2, BUTTON_SIZE + 2);
-
         }
-        
         if (COLORS[i] == "white") {
             ctx.fillStyle = "black";
             ctx.fillRect((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X, BUTTON_OFFSET_Y, BUTTON_SIZE, BUTTON_SIZE);
@@ -239,37 +226,28 @@ function drawPenButtons() {
 }
 
 function sbDrag(event) {
-
     let msEvt = event;
-    
     for (let i = 0; i < COLORS.length; i++) {
         if ((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X < msEvt.offsetX && (i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X + BUTTON_SIZE > msEvt.offsetX && BUTTON_OFFSET_Y < msEvt.offsetY && BUTTON_OFFSET_Y + BUTTON_SIZE > msEvt.offsetY) {
             selected_pen = COLORS[i];
             pen_selecting = true;
         }
     }
-
     for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels[i].boxes.length; j++) {
             //if clicked on label, drag label
             if (labels[i].boxes[j].x < msEvt.offsetX && labels[i].boxes[j].x + labels[i].boxes[j].w > msEvt.offsetX && 
                 labels[i].boxes[j].y < msEvt.offsetY && labels[i].boxes[j].y + labels[i].boxes[j].h > msEvt.offsetY) {
-
                 labels[i].boxes[j].drag = true;
                 label_dragging = true;
             }
         }
-        
     }
-
     canv.onmousemove = sbMove;
-
 }
 
 function sbDrop(event) {
-
     let msEvt = event;
-    
     for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels[i].boxes.length; j++) {
             //35, 200, 129, 24
@@ -284,7 +262,6 @@ function sbDrop(event) {
                     labels[i].boxes[j].x = 37;
                     labels[i].boxes[j].y = 202;
                 }
-                
             }
             //35, 228, 89, 24
             if (labels[i].color == "orange" && msEvt.offsetX > 35 && msEvt.offsetX < 124 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
@@ -318,13 +295,10 @@ function sbDrop(event) {
     label_dragging = false;
     pen_selecting = false;
     canv.onmousemove = null;
-
 }
 
 function sbMove(event) {
-
     let msEvt = event;
-    
     if (label_dragging) {
         for (let i = 0; i < labels.length; i++) {
             for (let j = 0; j < labels[i].boxes.length; j++) {
@@ -359,9 +333,7 @@ function sbMove(event) {
 }
 
 function makeCalendar(month=rightnow.getMonth()+1, year=rightnow.getFullYear()) {
-    
     let date = new Date(year, month -1, 1, 1, 1, 1, 1);
-
     let search_index;
     if (date.getDate() > 7) {
         search_index = date.getDate() - date.getDay();
@@ -377,10 +349,8 @@ function makeCalendar(month=rightnow.getMonth()+1, year=rightnow.getFullYear()) 
             }
         }
     }
-
     let do_29 = true;
     let do_31 = true;
-    
     switch (month) {
         case 2:
             if (year % 4 != 0) do_29 = false;
@@ -390,32 +360,55 @@ function makeCalendar(month=rightnow.getMonth()+1, year=rightnow.getFullYear()) 
         case 11:
             do_31 = false;
             break;
-        
     }
     let display_calendar = [];
     for (let j = 0; j < CALENDAR.length; j++) {
         let week = [CALENDAR[j][display_index], CALENDAR[j][display_index + 1], CALENDAR[j][display_index + 2], CALENDAR[j][display_index + 3], CALENDAR[j][display_index + 4], CALENDAR[j][display_index + 5], CALENDAR[j][display_index + 6]];
-        
         if (!do_29 && month == 2) {
-            week.splice(week.indexOf(29), 3);
+            if (week.indexOf(29) >= 0) {
+                week.splice(week.indexOf(29), 3);
+            }
         }
         else if (month == 2) {
-            week.splice(week.indexOf(30), 2);
+            if (week.indexOf(30) >= 0) {
+                week.splice(week.indexOf(30), 2);
+            }
         }
         else if (!do_31) {
-            week.splice(week.indexOf(31), 1);
+            if (week.indexOf(31) >= 0) {
+                week.splice(week.indexOf(31), 1);
+            }
         }
-
         while (week.length < 7){
             week.push(0);
         }
-        
         display_calendar.push(week);
     }
     return display_calendar;
 }
 
+function drawCalendar() {
+    let mm = 10;
+    for (let i = 0; i < labels[1].boxes.length; i++) {
+        if (labels[1].boxes[i].x == 37 && labels[1].boxes[i].y == 230) {
+            mm = i + 1;
+        }
+    }
+    let display = makeCalendar(mm);
+    ctx.font = "14px Arial";
+    ctx.fillStyle = COLORS[4];
+    ctx.fillRect(CALENDAR_ORIGIN.x, CALENDAR_ORIGIN.y, (CALENDAR_DAY_WIDTH + 1) * display[0].length + 1, (CALENDAR_DAY_WIDTH + 1) * display.length + 1);
+    for (let i = 0; i < display.length; i++) {
+        for (let j = 0; j < display[i].length;j++) {
+            if (display[i][j] != 0) {
+                ctx.fillStyle = DEFAULT_BACKGROUND;
+                ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);           
+                ctx.fillStyle = COLORS[4];
+                ctx.fillText(display[i][j], CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2));
+            }
+        }
+    }
+}
+
 canv.onmousedown = sbDrag;
 canv.onmouseup = sbDrop;
-
-
