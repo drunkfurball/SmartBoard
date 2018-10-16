@@ -83,11 +83,11 @@ function addTask(descrip) {
 
 function update() { //everything that needs to be drawn in every frame
     clearBoard();
+    rightnow = new Date();
+    drawCalendar();
     drawLines();
     drawClock();
     drawWordCalendar();
-    rightnow = new Date();
-    drawCalendar();
     drawLabels();
     drawPenButtons();
 }
@@ -388,10 +388,16 @@ function makeCalendar(month=rightnow.getMonth()+1, year=rightnow.getFullYear()) 
 }
 
 function drawCalendar() {
-    let mm = 10;
+    let mm = rightnow.getMonth()+1;
     for (let i = 0; i < labels[1].boxes.length; i++) {
         if (labels[1].boxes[i].x == 37 && labels[1].boxes[i].y == 230) {
             mm = i + 1;
+        }
+    }
+    let dd = rightnow.getDate();
+    for (let i = 0; i < labels[2].boxes.length; i++) {
+        if (labels[2].boxes[i].x == 132 && labels[2].boxes[i].y == 230) {
+            dd = i + 1;
         }
     }
     let display = makeCalendar(mm);
@@ -402,9 +408,22 @@ function drawCalendar() {
         for (let j = 0; j < display[i].length;j++) {
             if (display[i][j] != 0) {
                 ctx.fillStyle = DEFAULT_BACKGROUND;
-                ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);           
+                ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
                 ctx.fillStyle = COLORS[4];
+                if (display[i][j] == dd) {
+                    ctx.beginPath();
+                    ctx.arc(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2),
+                    CALENDAR_DAY_WIDTH/2, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = DEFAULT_BACKGROUND;
+                    ctx.beginPath();
+                    ctx.arc(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2),
+                    CALENDAR_DAY_WIDTH/2 - 1, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = COLORS[4];
+                }
                 ctx.fillText(display[i][j], CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2));
+                
             }
         }
     }
