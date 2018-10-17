@@ -25,7 +25,7 @@ const COLORS =[
 ] 
 
 let scheme_index = 0;
-let DEFAULT_PEN = COLORS[scheme_index][6]; // sets the default starting pen color
+let DEFAULT_PEN = 6; // sets the default starting pen color
 let DEFAULT_BACKGROUND = COLORS[scheme_index][7];
 
 document.getElementById("todo").style="background-color:" + DEFAULT_BACKGROUND + ";border-left:1px solid " + DEFAULT_PEN + ";font-family:Arial;font-size:14px;";
@@ -63,7 +63,7 @@ let pens = [];
 
 for (let i = 0; i < COLORS[scheme_index].length; i++) {
     if (COLORS[scheme_index][i] != DEFAULT_BACKGROUND) {
-        pens.push({color: COLORS[scheme_index][i], pixels: []});
+        pens.push({color: i, pixels: []});
     }
 }
 
@@ -87,7 +87,7 @@ function updateToDo() {
 
 function addTask(descrip) {
     let task = {
-        color: (selected_pen == COLORS[scheme_index][7]? COLORS[scheme_index][6]: selected_pen),
+        color: (selected_pen == 7? COLORS[scheme_index][6]: COLORS[scheme_index][selected_pen]),
         description: descrip
     };
     todo_list.push(task);
@@ -191,7 +191,7 @@ function drawFace(ctx, radius) {
 function drawLines() {
     for (let i = 0; i < pens.length; i++) {
         for (let j = 0; j < pens[i].pixels.length; j++) {
-            drawPixel(pens[i].color, pens[i].pixels[j].x, pens[i].pixels[j].y);
+            drawPixel(COLORS[scheme_index][pens[i].color], pens[i].pixels[j].x, pens[i].pixels[j].y);
         }
     }
 }
@@ -228,8 +228,8 @@ function drawLabels() {
 
 function drawPenButtons() {
     for (let i = 0; i < COLORS[scheme_index].length; i++) {
-        if (COLORS[scheme_index][i] == selected_pen) {
-            if (selected_pen != DEFAULT_BACKGROUND) {
+        if (i == selected_pen) {
+            if (selected_pen != 7) {
                 ctx.fillStyle = COLORS[scheme_index][i];
             }
             else {
@@ -256,7 +256,7 @@ function sbDrag(event) {
     let msEvt = event;
     for (let i = 0; i < COLORS[scheme_index].length; i++) {
         if ((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X < msEvt.offsetX && (i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X + BUTTON_SIZE > msEvt.offsetX && BUTTON_OFFSET_Y < msEvt.offsetY && BUTTON_OFFSET_Y + BUTTON_SIZE > msEvt.offsetY) {
-            selected_pen = COLORS[scheme_index][i];
+            selected_pen = i;
             pen_selecting = true;
         }
     }
@@ -339,12 +339,8 @@ function sbMove(event) {
     }
     else {
         if (!pen_selecting) {
-            if (selected_pen != DEFAULT_BACKGROUND) {
-                for (let i = 0; i < pens.length; i++) {
-                    if (pens[i].color == selected_pen) {
-                        pens[i].pixels.push({x: msEvt.offsetX, y: msEvt.offsetY});
-                    }
-                }
+            if (selected_pen != 7) {
+                pens[selected_pen].pixels.push({x: msEvt.offsetX, y: msEvt.offsetY});
             }
             else {
                 for (let i = 0; i < pens.length; i++) {
