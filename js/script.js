@@ -43,17 +43,17 @@ let radius = CLOCK_RADIUS * 0.90;
 //sets up the word calendar
 let labels = [];
 
-labels.push({color: COLORS[scheme_index][3], boxes: []});
+labels.push({color: 3, boxes: []});
 for (let i = 0; i < DAYS_OF_THE_WEEK.length; i++) {
     labels[0].boxes.push({name: DAYS_OF_THE_WEEK[i], drag: false, x: (i * 129) + 5, y: 600, default_x: (i * 129) + 5, default_y: 600, w: 125, h: 20});
 }
 
-labels.push({color: COLORS[scheme_index][1], boxes: []});
+labels.push({color: 1, boxes: []});
 for (let i = 0; i < MONTHS_OF_THE_YEAR.length; i++) {
     labels[1].boxes.push({name: MONTHS_OF_THE_YEAR[i], drag: false, x: (i * 89) + 5, y: 625, default_x: (i * 89) + 5, default_y: 625, w: 85, h: 20});
 }
 
-labels.push({color: COLORS[scheme_index][5], boxes: []});
+labels.push({color: 5, boxes: []});
 for (let i = 0; i < DAYS_OF_THE_MONTH.length; i++) {
     labels[2].boxes.push({name: DAYS_OF_THE_MONTH[i], drag: false, x: (i * 34) + 5, y: 650, default_x: (i * 34) + 5, default_y: 650, w: 30, h: 20});
 }
@@ -278,7 +278,7 @@ function sbDrop(event) {
     for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels[i].boxes.length; j++) {
             //35, 200, 129, 24
-            if (labels[i].color == COLORS[scheme_index][3] && msEvt.offsetX > 35 && msEvt.offsetX < 164 && msEvt.offsetY > 200 && msEvt.offsetY < 224) {
+            if (labels[i].color == 3 && msEvt.offsetX > 35 && msEvt.offsetX < 164 && msEvt.offsetY > 200 && msEvt.offsetY < 224) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
@@ -291,7 +291,7 @@ function sbDrop(event) {
                 }
             }
             //35, 228, 89, 24
-            if (labels[i].color == COLORS[scheme_index][1] && msEvt.offsetX > 35 && msEvt.offsetX < 124 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
+            if (labels[i].color == 1 && msEvt.offsetX > 35 && msEvt.offsetX < 124 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
@@ -304,7 +304,7 @@ function sbDrop(event) {
                 }
             }
             //130, 228, 34, 24
-            if (labels[i].color == COLORS[scheme_index][5] && msEvt.offsetX > 130 && msEvt.offsetX < 164 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
+            if (labels[i].color == 5 && msEvt.offsetX > 130 && msEvt.offsetX < 164 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
