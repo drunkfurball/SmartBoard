@@ -96,14 +96,15 @@ function update() { //everything that needs to be drawn in every frame
         drawClock();
     }
     if (calendar_toggle) {
-        drawWordCalendar();
-        drawLabels();
+        drawCalendar();
+        
     }
     drawLines();
     drawPenButtons();
     if (calendar_toggle) {
-        drawCalendar();
-    }    
+        drawWordCalendar();
+        drawLabels();
+    }
 }
 
 function toggleClock() {
