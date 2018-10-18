@@ -12,7 +12,6 @@ const BUTTON_OFFSET_X = 440;
 const BUTTON_OFFSET_Y = 570;
 const CALENDAR_ORIGIN = {x:12, y:285}; // top left of full calendar
 const CALENDAR_DAY_WIDTH = 24;//how big to draw the calendar boxes on the full calendar
-
 const COLORS =[
     ["#f00", "#f60", "#ff3", "#3c3", "#3cc", "#c6f", "#333", "#fff"], // 0 - classic
     ["#f00", "#f60", "#ff3", "#3c3", "#3cc", "#c6f", "#fff", "#333"], // 1 - classic w/ darkmode
@@ -27,40 +26,37 @@ const COLORS =[
 let scheme_index = 0;
 let DEFAULT_PEN = 6; // sets the default starting pen color
 let DEFAULT_BACKGROUND = COLORS[scheme_index][7];
-
-document.getElementById("todo").style="background-color:" + DEFAULT_BACKGROUND + ";border-left:1px solid " + DEFAULT_PEN + ";font-family:Arial;font-size:14px;";
 let canv = document.getElementById("board");
 let ctx = canv.getContext("2d");
 let selected_pen = DEFAULT_PEN;
 let label_dragging = false;
 let pen_selecting = false;
-let rightnow;
+let rightnow = new Date();
 let todo_list = [];
-
-//sets up the clock
+let calendar_toggle = true;
+let clock_toggle = true;
 let radius = CLOCK_RADIUS * 0.90;
-
-//sets up the word calendar
 let labels = [];
+let pens = [];
+let yyyy = rightnow.getFullYear();
 
-labels.push({color: 3, boxes: []});
+//sets up the labels
+labels.push({boxes: []});
 for (let i = 0; i < DAYS_OF_THE_WEEK.length; i++) {
     labels[0].boxes.push({name: DAYS_OF_THE_WEEK[i], drag: false, x: (i * 129) + 5, y: 600, default_x: (i * 129) + 5, default_y: 600, w: 125, h: 20});
 }
 
-labels.push({color: 1, boxes: []});
+labels.push({boxes: []});
 for (let i = 0; i < MONTHS_OF_THE_YEAR.length; i++) {
     labels[1].boxes.push({name: MONTHS_OF_THE_YEAR[i], drag: false, x: (i * 89) + 5, y: 625, default_x: (i * 89) + 5, default_y: 625, w: 85, h: 20});
 }
 
-labels.push({color: 5, boxes: []});
+labels.push({boxes: []});
 for (let i = 0; i < DAYS_OF_THE_MONTH.length; i++) {
     labels[2].boxes.push({name: DAYS_OF_THE_MONTH[i], drag: false, x: (i * 34) + 5, y: 650, default_x: (i * 34) + 5, default_y: 650, w: 30, h: 20});
 }
 
 //sets up the pens
-let pens = [];
-
 for (let i = 0; i < COLORS[scheme_index].length; i++) {
     if (COLORS[scheme_index][i] != DEFAULT_BACKGROUND) {
         pens.push({color: i, pixels: []});
@@ -70,13 +66,11 @@ for (let i = 0; i < COLORS[scheme_index].length; i++) {
 function updateToDo() {
     let todo = document.getElementById("todo-list");
     let output = "";
-
+    document.getElementById("todo").style = "background-color:" + COLORS[scheme_index][7];
     for (let i = 0; i < todo_list.length; i++) {
-        output += "<div id='task-" + i + "' style='margin:3px;padding:3px;border: 1px solid " + todo_list[i].color +";color:" +todo_list[i].color+";'>" + todo_list[i].description + "</div>";
+        output += "<div id='task-" + i + "' style='margin:3px;padding:3px;border: 1px solid " + COLORS[scheme_index][todo_list[i].color] +";color:" + COLORS[scheme_index][todo_list[i].color] + ";'>" + todo_list[i].description + "</div>";
     }
-
     todo.innerHTML = output;
-
     for (let i = 0; i < todo_list.length; i++) {
         document.getElementById('task-' + i).addEventListener("dblclick", function(){
             todo_list.splice(i, 1);
@@ -87,7 +81,7 @@ function updateToDo() {
 
 function addTask(descrip) {
     let task = {
-        color: (selected_pen == 7? COLORS[scheme_index][6]: COLORS[scheme_index][selected_pen]),
+        color: (selected_pen == 7? 6: selected_pen),
         description: descrip
     };
     todo_list.push(task);
@@ -98,12 +92,33 @@ function addTask(descrip) {
 function update() { //everything that needs to be drawn in every frame
     clearBoard();
     rightnow = new Date();
-    drawCalendar();
+    if (clock_toggle) {
+        drawClock();
+    }
+    if (calendar_toggle) {
+        drawWordCalendar();
+        drawLabels();
+    }
     drawLines();
-    drawClock();
-    drawWordCalendar();
-    drawLabels();
     drawPenButtons();
+    if (calendar_toggle) {
+        drawCalendar();
+    }    
+}
+
+function toggleClock() {
+    clock_toggle = !clock_toggle;
+}
+
+function toggleCalendar() {
+    calendar_toggle = ! calendar_toggle;
+}
+
+function changeScheme(num) {
+    if (num < 8 && num >= 0) {
+        scheme_index = num;
+    }
+    updateToDo();
 }
 
 function clearBoard() {
@@ -140,14 +155,11 @@ function drawTime(ctx, radius) {
     let hour = now.getHours();
     let minute = now.getMinutes();
     let second = now.getSeconds();
-    //hour
     hour = hour % 12;
     hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI/(360 * 60));
     drawHand(ctx, hour, radius * 0.5, radius * 0.07);
-    //minute
     minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
     drawHand(ctx, minute, radius * 0.8, radius * 0.07);
-    //second
     second = (second * Math.PI/30);
     drawHand(ctx, second, radius * 0.9, radius * 0.02);
 }
@@ -191,7 +203,7 @@ function drawFace(ctx, radius) {
 function drawLines() {
     for (let i = 0; i < pens.length; i++) {
         for (let j = 0; j < pens[i].pixels.length; j++) {
-            drawPixel(COLORS[scheme_index][pens[i].color], pens[i].pixels[j].x, pens[i].pixels[j].y);
+            drawPixel(COLORS[scheme_index][i], pens[i].pixels[j].x, pens[i].pixels[j].y);
         }
     }
 }
@@ -217,7 +229,6 @@ function drawLabels() {
                     ctx.fillStyle = COLORS[scheme_index][5];
                     break;
             }
-            //ctx.fillStyle = labels[i].color;
             ctx.fillRect(labels[i].boxes[j].x, labels[i].boxes[j].y, labels[i].boxes[j].w, labels[i].boxes[j].h);
             ctx.font = "14px Arial";
             ctx.fillStyle = DEFAULT_BACKGROUND;
@@ -262,7 +273,6 @@ function sbDrag(event) {
     }
     for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels[i].boxes.length; j++) {
-            //if clicked on label, drag label
             if (labels[i].boxes[j].x < msEvt.offsetX && labels[i].boxes[j].x + labels[i].boxes[j].w > msEvt.offsetX && 
                 labels[i].boxes[j].y < msEvt.offsetY && labels[i].boxes[j].y + labels[i].boxes[j].h > msEvt.offsetY) {
                 labels[i].boxes[j].drag = true;
@@ -278,7 +288,7 @@ function sbDrop(event) {
     for (let i = 0; i < labels.length; i++) {
         for (let j = 0; j < labels[i].boxes.length; j++) {
             //35, 200, 129, 24
-            if (labels[i].color == 3 && msEvt.offsetX > 35 && msEvt.offsetX < 164 && msEvt.offsetY > 200 && msEvt.offsetY < 224) {
+            if (i == 0 && msEvt.offsetX > 35 && msEvt.offsetX < 164 && msEvt.offsetY > 200 && msEvt.offsetY < 224) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
@@ -291,7 +301,7 @@ function sbDrop(event) {
                 }
             }
             //35, 228, 89, 24
-            if (labels[i].color == 1 && msEvt.offsetX > 35 && msEvt.offsetX < 124 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
+            if (i == 1 && msEvt.offsetX > 35 && msEvt.offsetX < 124 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
@@ -304,7 +314,7 @@ function sbDrop(event) {
                 }
             }
             //130, 228, 34, 24
-            if (labels[i].color == 5 && msEvt.offsetX > 130 && msEvt.offsetX < 164 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
+            if (i == 2 && msEvt.offsetX > 130 && msEvt.offsetX < 164 && msEvt.offsetY > 228 && msEvt.offsetY < 252) {
                 //set all other labels in this set to their default x and y
                 if (labels[i].boxes[j].drag == false) {
                     labels[i].boxes[j].x = labels[i].boxes[j].default_x;
@@ -329,7 +339,6 @@ function sbMove(event) {
     if (label_dragging) {
         for (let i = 0; i < labels.length; i++) {
             for (let j = 0; j < labels[i].boxes.length; j++) {
-                //drag label
                 if (labels[i].boxes[j].drag == true) {
                     labels[i].boxes[j].x = msEvt.offsetX;
                     labels[i].boxes[j].y = msEvt.offsetY;
@@ -429,7 +438,7 @@ function drawCalendar() {
             wd = i;
         }
     }
-    let display = makeCalendar(mm);
+    let display = makeCalendar(mm, yyyy);
     ctx.font = "9px Arial";
     for (let i = 0; i < DAYS_ABBREVIATED.length; i++) {
         if (wd == i) {
