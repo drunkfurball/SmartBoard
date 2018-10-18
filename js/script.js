@@ -80,12 +80,31 @@ function updateToDo() {
 }
 
 function addTask(descrip) {
-    let task = {
-        color: (selected_pen == 7? 6: selected_pen),
-        description: descrip
-    };
-    todo_list.push(task);
-    document.getElementById("input").value = "";
+    let task;
+    switch(descrip) {
+        case "clock":
+            toggleClock();
+            break;
+        case "calendar":
+            toggleCalendar();
+            break;
+        case "help":
+            task = {
+                color: (selected_pen == 7? 6: selected_pen),
+                description: "Welcome to the Smart Board by Murph Strange<br /><br />Type <b>clock</b> to enable/disable the clock display.<br />Type <b>calendar</b> to enable/disable the calendar display.<br />Type <b>help</b> to display this helpful message.<br />Type anything else to add a task to the to do list. Double-click an item on the to do list to remove it."
+            }
+            todo_list.push(task);
+            document.getElementById("input").value = "";
+            break;
+        default:
+            task = {
+                color: (selected_pen == 7? 6: selected_pen),
+                description: descrip
+            };
+            todo_list.push(task);
+            document.getElementById("input").value = "";
+            break;
+    }
     updateToDo();
 }
 
