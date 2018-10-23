@@ -44,6 +44,8 @@ let radius = CLOCK_RADIUS * 0.90;
 let labels = [];
 let pens = [];
 let yyyy = rightnow.getFullYear();
+let last_mouse_X = 0;
+let last_mouse_Y = 0;
 
 labels.push({boxes: []});// set up the labels
 for (let i = 0; i < DAYS_OF_THE_WEEK.length; i++) {
@@ -303,6 +305,8 @@ function drawPenButtons() {
 
 function sbDrag(event) {
     let msEvt = event;
+    last_mouse_X = msEvt.offsetX;
+    last_mouse_Y = msEvt.offsetY;
     for (let i = 0; i < COLORS[scheme_index].length; i++) {
         if ((i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X < msEvt.offsetX && (i * (BUTTON_SIZE + 5)) + BUTTON_OFFSET_X + BUTTON_SIZE > msEvt.offsetX && BUTTON_OFFSET_Y < msEvt.offsetY && BUTTON_OFFSET_Y + BUTTON_SIZE > msEvt.offsetY) {
             selected_pen = i;
@@ -378,8 +382,16 @@ function sbMove(event) {
     else {
         if (!pen_selecting) {
             if (selected_pen != 7) {
-                pens[selected_pen].pixels.push({x: msEvt.offsetX, y: msEvt.offsetY});
-            }
+                let x_form = xCoordFormula(last_mouse_X, last_mouse_Y, msEvt.offsetX, msEvt.offsetY);
+                for (let xn = last_mouse_X; (last_mouse_X < msEvt.offsetX? xn < msEvt.offsetX: xn > msEvt.offsetX); (last_mouse_X < msEvt.offsetX? xn+=PIXEL_RADIUS*1.25:xn-=PIXEL_RADIUS*1.25)) {
+                    pens[selected_pen].pixels.push({x: Math.floor(xn), y: Math.floor(x_form(xn))});
+                }
+                let y_form = yCoordFormula(last_mouse_X, last_mouse_Y, msEvt.offsetX, msEvt.offsetY);
+                for (let yn = last_mouse_Y; (last_mouse_Y < msEvt.offsetY? yn < msEvt.offsetY: yn > msEvt.offsetY); (last_mouse_Y < msEvt.offsetY? yn+=PIXEL_RADIUS*1.25:yn-=PIXEL_RADIUS*1.25)) {
+                    pens[selected_pen].pixels.push({x: Math.floor(y_form(yn)), y: Math.floor(yn)});
+                }
+                pens[selected_pen].pixels.push({x: msEvt.offsetX, y: msEvt.offsetY}); 
+            } 
             else {
                 for (let i = 0; i < pens.length; i++) {
                     for (let j = 0; j < pens[i].pixels.length; j++) {
@@ -390,6 +402,8 @@ function sbMove(event) {
                 }
             }
         }
+        last_mouse_X = msEvt.offsetX;
+        last_mouse_Y = msEvt.offsetY;
     }
 }
 
@@ -652,6 +666,25 @@ function drawMoon() {
     ctx.beginPath();
     ctx.arc(MOON_X, MOON_Y, 50 * MOON_SCALE, 0, Math.PI * 2, false);
     ctx.fill();
+}
+
+function slope(x1, y1, x2, y2) {
+    return (y2 - y1)/(x2 - x1);
+}
+
+function yIntercept(x1, y1, x2, y2) {
+    return (-1 * x1 * slope(x1, y1, x2, y2)) + y1;
+}
+
+function yCoordFormula(x1, y1, x2, y2) {
+    return function(y) {
+        return (y - (-1 * x1 *((y2 - y1) / (x2 - x1)) + y1))/((y2 - y1)/(x2 - x1));
+    }
+}
+function xCoordFormula (x1, y1, x2, y2) {
+    return function(x){
+        return (slope(x1, y1, x2, y2) * x) + yIntercept(x1, y1, x2, y2);
+    };
 }
 
 canv.onmousedown = sbDrag;
