@@ -687,5 +687,281 @@ function xCoordFormula (x1, y1, x2, y2) {
     };
 }
 
+function makePlot(lineFunc) {
+	return function(x) {
+        return eval(lineFunc);
+    };
+}
+
+function drawCartesianGrid() {
+
+}
+
+function morse_decoder(str) {
+    let input = str;
+    let output = "";
+
+    let words_output = input.replace(/0000000/g, "0, ,"); //word break
+    let letters_output = words_output.replace(/000/g, "0,"); //letter break
+    let dahs_output = letters_output.replace(/1110/g, "dah"); //decode the dahs
+    let dits_output = dahs_output.replace(/10/g, "dit"); //decode the dits
+    let word_list = dits_output.split(","); //make a list of letters
+
+    for (i = 0; i < word_list.length; i++) {
+        switch(word_list[i]) {
+            case "ditdah":
+                // ._ a
+                output += "a";
+                break;
+            case "dahditditdit":
+                // _... b
+                output += "b";
+                break;
+            case "dahditdahdit":
+                // _._. c
+                output += "c";
+                break;
+            case "dahditdit":
+                // _.. d
+                output += "d";
+                break;
+            case "dit":
+                // . e
+                output += "e";
+                break;
+            case "ditditdahdit":
+                // .._. f
+                output += "f";
+                break;
+            case "dahdahdit":
+                // __. g
+                output += "g";
+                break;
+            case "ditditditdit":
+                // .... h
+                output += "h";
+                break;
+            case "ditdit":
+                // .. i
+                output += "i";
+                break;
+            case "ditdahdahdah":
+                // .___ j
+                output += "j";
+                break;
+            case "dahditdah":
+                // _._ k
+                output += "k";
+                break;
+            case "ditdahditdit":
+                // ._.. l
+                output += "l";
+                break;
+            case "dahdah":
+                // __ m
+                output += "m";
+                break;
+            case "dahdit":
+                // _. n
+                output += "n";
+                break;
+            case "dahdahdah":
+                // ___ o
+                output += "o";
+                break;
+            case "ditdahdahdit":
+                // .__. p
+                output += "p";
+                break;
+            case "dahdahditdah":
+                // __._ q
+                output += "q";
+                break;
+            case "ditdahdit":
+                // ._. r
+                output += "r";
+                break;
+            case "ditditdit":
+                // ... s
+                output += "s";
+                break;
+            case "dah":
+                // _ t
+                output += "t";
+                break;
+            case "ditditdah":
+                // .._ u
+                output += "u";
+                break;
+            case "ditditditdah":
+                // ..._ v
+                output += "v";
+                break;
+            case "ditdahdah":
+                // .__ w
+                output += "w";
+                break;
+            case "dahditditdah":
+                // _.._ x
+                output += "x";
+                break;
+            case "dahditdahdah":
+                // _.__ y
+                output += "y";
+                break;
+            case "dahdahditdit":
+                // __.. z
+                output += "z";
+                break;
+            case "ditdahditdahditdah":
+                // ._._._ .
+                output += ".";
+                break;
+            case "dahdahditditdahdah":
+                // __..__ ,
+                output += ",";
+                break;
+            default:
+                output += " ";
+                break;
+
+        }
+    }
+    
+    return output;
+
+}
+
+function morse_encoder(str) {
+    let input = str.toString().toLowerCase();
+    let output = [];
+    let dit = [1, 0];
+    let dah = [1, 1, 1, 0];
+    let separator = [0, 0];
+
+    for (let i = 0; i < input.length; i++) {
+        switch (input[i]) {
+            case "a":
+                // ._
+                output = output.concat(dit, dah);
+                break;
+            case "b":
+                // _...
+                output = output.concat(dah, dit, dit, dit);
+                break;
+            case "c":
+                // _._.
+                output = output.concat(dah, dit, dah, dit);
+                break;
+            case "d":
+                // _..
+                output = output.concat(dah, dit, dit);
+                break;
+            case "e":
+                // .
+                output = output.concat(dit);
+                break;
+            case "f":
+                // .._.
+                output = output.concat(dit, dit, dah, dit);
+                break;
+            case "g":
+                // __.
+                output = output.concat(dah, dah, dit);
+                break;
+            case "h":
+                // ....
+                output = output.concat(dit, dit, dit, dit);
+                break;
+            case "i":
+                // ..
+                output = output.concat(dit, dit);
+                break;
+            case "j":
+                // .___
+                output = output.concat(dit, dah, dah, dah);
+                break;
+            case "k":
+                // _._
+                output = output.concat(dah, dit, dah);
+                break;
+            case "l":
+                // ._..
+                output = output.concat(dit, dah, dit, dit);
+                break;
+            case "m":
+                // __
+                output = output.concat(dah, dah);
+                break;
+            case "n":
+                // _.
+                output = output.concat(dah, dit);
+                break;
+            case "o":
+                // ___
+                output = output.concat(dah, dah, dah);
+                break;
+            case "p":
+                // .__.
+                output = output.concat(dit, dah, dah, dit);
+                break;
+            case "q":
+                // __._
+                output = output.concat(dah, dah, dit, dah);
+                break;
+            case "r":
+                // ._.
+                output = output.concat(dit, dah, dit);
+                break;
+            case "s":
+                // ...
+                output = output.concat(dit, dit, dit);
+                break;
+            case "t":
+                // _
+                output = output.concat(dah);
+                break;
+            case "u":
+                // .._
+                output = output.concat(dit, dit, dah);
+                break;
+            case "v":
+                // ..._
+                output = output.concat(dit, dit, dit, dah);
+                break;
+            case "w":
+                // .__
+                output = output.concat(dit, dah, dah);
+                break;
+            case "x":
+                // _.._
+                output = output.concat(dah, dit, dit, dah);
+                break;
+            case "y":
+                // _.__
+                output = output.concat(dah, dit, dah, dah);
+                break;
+            case "z":
+                // __..
+                output = output.concat(dah, dah, dit, dit);
+                break;
+            case ".":
+                // ._._._
+                output = output.concat(dit, dah, dit, dah, dit, dah);
+                break;
+            case ",":
+                // __..__
+                output = output.concat(dah, dah, dit, dit, dah, dah);
+                break;
+            case " ":
+                output = output.concat(separator);
+                break;
+                
+        }
+        output = output.concat(separator);
+    }
+    return output.join("");
+}
+
 canv.onmousedown = sbDrag;
 canv.onmouseup = sbDrop;
