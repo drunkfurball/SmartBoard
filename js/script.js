@@ -613,26 +613,26 @@ function drawMoon() {
             break;
         case "Waxing Cresent":
             if (flip_the_moon) {
-                ctx.fillStyle = waning_cresent;
+                ctx.fillStyle = waxing_cresent;
             }
             else {
-                ctx.fillStyle = waxing_cresent;
+                ctx.fillStyle = waning_cresent;
             }
             break;
         case "First Quarter":
             if (flip_the_moon) {
-                ctx.fillStyle = third_quarter;
+                ctx.fillStyle = first_quarter;
             }
             else {
-                ctx.fillStyle = first_quarter;
+                ctx.fillStyle = third_quarter;
             }
             break;
         case "Waxing Gibbous":
             if (flip_the_moon) {
-                ctx.fillStyle = waning_gibbous;
+                ctx.fillStyle = waxing_gibbous;
             }
             else {
-                ctx.fillStyle = waxing_gibbous;
+                ctx.fillStyle = waning_gibbous;
             }
             break;
         case "Full":
@@ -640,18 +640,18 @@ function drawMoon() {
             break;
         case "Waning Gibbous":
             if (flip_the_moon) {
-                ctx.fillStyle = waxing_gibbous;
+                ctx.fillStyle = waning_gibbous;
             }
             else {
-                ctx.fillStyle = waning_gibbous;
+                ctx.fillStyle = waxing_gibbous;
             }
             break;
         case "Third Quarter":
             if (flip_the_moon) {
-                ctx.fillStyle = first_quarter;
+                ctx.fillStyle = third_quarter;
             }
             else {
-                ctx.fillStyle = third_quarter;
+                ctx.fillStyle = first_quarter;
             }
             break;
         case "Waning Cresent":
