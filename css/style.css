@@ -10,7 +10,6 @@ body {
 canvas {
     display: block;
     float: left;
-
 }
 
 #todo {
@@ -30,4 +29,14 @@ canvas {
 
 #todo form {
     padding: 3px;
+}
+
+table {
+    text-align: center;
+    font-size: .55em;
+    cursor: pointer;    
+}
+
+td {
+    border-radius: 50%;
 }

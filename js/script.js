@@ -13,6 +13,9 @@ const PIXEL_RADIUS = 5;
 const BUTTON_SIZE = 20; // pen selection button size
 const BUTTON_OFFSET_X = 440;
 const BUTTON_OFFSET_Y = 570;
+const CARTORIG_X = 436;
+const CARTORIG_Y = 236;
+const CART_SIZE = 400;
 const CALENDAR_ORIGIN = {x:12, y:285}; // top left of full calendar
 const CALENDAR_DAY_WIDTH = 24;//how big to draw the calendar boxes on the full calendar
 const COLORS =[
@@ -27,6 +30,9 @@ const COLORS =[
 ] 
 
 let scheme_index = 0;
+if (typeof(Storage) !== "undefined" && localStorage.getItem("theme")) {
+    scheme_index = Number(localStorage.getItem("theme"));
+}
 let DEFAULT_PEN = 6; // sets the default starting pen color
 let DEFAULT_BACKGROUND = COLORS[scheme_index][7];
 let canv = document.getElementById("board");
@@ -40,12 +46,15 @@ let moon_toggle = true;
 let flip_the_moon = false;
 let calendar_toggle = true;
 let clock_toggle = true;
+let cartesian_grid = false;
+let tracker_toggle = false;
 let radius = CLOCK_RADIUS * 0.90;
 let labels = [];
 let pens = [];
 let yyyy = rightnow.getFullYear();
 let last_mouse_X = 0;
 let last_mouse_Y = 0;
+let tracker = [];
 
 labels.push({boxes: []});// set up the labels
 for (let i = 0; i < DAYS_OF_THE_WEEK.length; i++) {
@@ -66,6 +75,16 @@ for (let i = 0; i < COLORS[scheme_index].length; i++) { //set up the pens
     }
 }
 
+function initToDo() {
+    let task;
+    task = {
+    color: (selected_pen == 7? 6: selected_pen),
+    description: "<div id='tracker'></div>"
+    }
+    todo_list.push(task);
+    updateToDo();
+}
+
 function updateToDo() {
     let todo = document.getElementById("todo-list");
     let output = "";
@@ -73,17 +92,186 @@ function updateToDo() {
     for (let i = 0; i < todo_list.length; i++) {
         output += "<div id='task-" + i + "' style='margin:3px;padding:3px;border: 1px solid " + COLORS[scheme_index][todo_list[i].color] +";color:" + COLORS[scheme_index][todo_list[i].color] + ";'>" + todo_list[i].description + "</div>";
     }
+    output += "<style>.marked{background-color: " + COLORS[scheme_index][2] + ";}</style>"
     todo.innerHTML = output;
     for (let i = 0; i < todo_list.length; i++) {
-        document.getElementById('task-' + i).addEventListener("dblclick", function(){
-            todo_list.splice(i, 1);
-            updateToDo();
-        });
+        if (i != 0) {
+            document.getElementById('task-' + i).addEventListener("dblclick", function(){
+                todo_list.splice(i, 1);
+                updateToDo();
+            });
+        }
+    }
+    if (tracker_toggle) {
+        updateTracker();
     }
 }
 
+function initTracker() {
+    if (typeof(Storage) !== "undefined" && localStorage.getItem("Jan")) {
+        for (let i = 0; i < 12; i++) {
+            let mm = "";
+            switch(i){
+                case 0:
+                    mm = "Jan";
+                    break;
+                case 1:
+                    mm = "Feb";
+                    break;
+                case 2:
+                    mm = "Mar";
+                    break;
+                case 3:
+                    mm = "Apr";
+                    break;
+                case 4:
+                    mm = "May";
+                    break;
+                case 5:
+                    mm = "Jun";
+                    break;
+                case 6:
+                    mm = "Jul";
+                    break;
+                case 7:
+                    mm = "Aug";
+                    break;
+                case 8:
+                    mm = "Sep";
+                    break;
+                case 9:
+                    mm = "Oct";
+                    break;
+                case 10:
+                    mm = "Nov";
+                    break;
+                case 11:
+                    mm = "Dec";
+                    break;
+            }
+            let dd = localStorage.getItem(mm).split(",");
+            for (let j = 0; j < dd.length; j++){
+                if (dd[j] == "true") {
+                    dd[j] = true;
+                }
+                else {
+                    dd[j] = false;
+                }
+            }
+            tracker.push([mm].concat(dd));
+        }
+    }
+    else {
+        for (let x = 0; x < 12; x++) {
+            let month = [];
+            let days = 0;
+            switch(x) {
+                case 0:
+                    month.push("Jan");
+                    days = 31;
+                    break;
+                case 1:
+                    month.push("Feb");
+                    days = 29;
+                    break;
+                case 2:
+                    month.push("Mar");
+                    days = 31;
+                    break;
+                case 3:
+                    month.push("Apr");
+                    days = 30;
+                    break;
+                case 4:
+                    month.push("May");
+                    days = 31;
+                    break;
+                case 5:
+                    month.push("Jun");
+                    days = 30;
+                    break;
+                case 6:
+                    month.push("Jul");
+                    days = 31;
+                    break;
+                case 7:
+                    month.push("Aug");
+                    days = 31;
+                    break;
+                case 8:
+                    month.push("Sep");
+                    days = 30;
+                    break;
+                case 9:
+                    month.push("Oct");
+                    days = 31;
+                    break;
+                case 10:
+                    month.push("Nov");
+                    days = 30;
+                    break;
+                case 11:
+                    month.push("Dec");
+                    days = 31;
+                    break;
+            }
+            for (let y = 0; y < days; y++) {
+                month.push(false);
+            }
+            tracker.push(month);
+        }
+    }
+}
+
+function updateTracker() {
+    var calendar = document.getElementById("tracker");
+    var output = "<table><tr>";
+    for (var x = 0; x < tracker.length; x++) { //header
+        output += "<th>" + tracker[x][0] + "</th>";
+    }
+    output += "</tr>";
+    for (var y = 1; y < tracker[0].length; y++) {//each row
+        output += "<tr>";
+        for (var x = 0; x < tracker.length; x++) {//each day
+            if (tracker[x][y] == undefined) {
+                output += "<td></td>";
+            }
+            else if (tracker[x][y]) {
+                output += "<td id='cal-" + x + "-" + y
+                 + "' class='cal marked'>" + y + "</td>";
+            }
+            else {
+                output += "<td id='cal-" + x + "-" + y
+                  + "' class='cal'>" + y + "</td>";
+            }
+            
+        }
+        output += "</tr>";
+    }
+    output += "</table>";
+    calendar.innerHTML = output;
+    
+    let cells = document.getElementsByClassName("cal");
+    //console.log(cells);
+    let patt = /\d{1,}/g;
+    for (let i = 0; i < cells.length; i++) {//add onclick
+        cells[i].onclick = function(e){
+            let mm = patt.exec(e.target.attributes.id.nodeValue.toString());
+            let dd = patt.exec(e.target.attributes.id.nodeValue.toString());
+            let bucket = patt.exec(e.target.attributes.id.nodeValue.toString());
+            tracker[mm][dd] = !tracker[mm][dd];
+            updateTracker();
+        };
+    }
+    if (typeof(Storage) !== "undefined") {
+        for (var i = 0; i < tracker.length; i ++){
+            localStorage.setItem(tracker[i][0], tracker[i].slice(1,tracker[i].length).join());
+        }
+    }
+    
+}
+
 function addTask(descrip) {
-    let task;
     switch(descrip) {
         case "flip the moon":
             flipMoon();
@@ -97,10 +285,37 @@ function addTask(descrip) {
         case "calendar":
             toggleCalendar();
             break;
+        case "tracker":
+            toggleTracker();
+            break;
+        case "theme 1":
+            changeScheme(0);
+            break;
+        case "theme 2":
+            changeScheme(1);
+            break;
+        case "theme 3":
+            changeScheme(2);
+            break;
+        case "theme 4":
+            changeScheme(3);
+            break;
+        case "theme 5":
+            changeScheme(4);
+            break;
+        case "theme 6":
+            changeScheme(5);
+            break;
+        case "theme 7":
+            changeScheme(6);
+            break;
+        case "theme 8":
+            changeScheme(7);
+            break;
         case "help":
             task = {
                 color: (selected_pen == 7? 6: selected_pen),
-                description: "Welcome to the Smart Board by Murph Strange<br /><br />Type <b>clock</b> to enable/disable the clock display.<br />Type <b>moon</b> to enable/disable the moon phase indicator.<br />If you live in the Southern Hemisphere, and want the moon oriented to reflect your view of the moon, type <b>flip the moon</b>.<br />Type <b>calendar</b> to enable/disable the calendar display.<br />Type <b>help</b> to display this helpful message.<br />Type anything else to add a task to the to do list. Double-click an item on the to do list to remove it."
+                description: "Welcome to the Smart Board by Murph Strange<br /><br />Type <b>clock</b> to enable/disable the clock display.<br />Type <b>moon</b> to enable/disable the moon phase indicator.<br />If you live in the Southern Hemisphere, and want the moon oriented to reflect your view of the moon, type <b>flip the moon</b>.<br />Type <b>calendar</b> to enable/disable the calendar display.<br />Type <b>theme #</b>, but replace the # with a number between 1 and 8 to select a color theme. Theme changes are remembered by your browser (unless you clear the cache). The themes are as follows:<br /><br /><b>1</b> Classic<br /><b>2</b> Classic - Dark Mode<br /><b>3</b> Red<br /><b>4</b> Red - Dark Mode<br /><b>5</b> Green<br /><b>6</b> Green - Dark Mode<br /><b>7</b> Blue<br /><b>8</b> Blue - Dark Mode<br /><br />Type <b>tracker</b> to show/hide the habit tracker at the top of the to do list. It's a little calendar that you can use to track the completion of a daily routine item you want to make a habit. Like exercising. Or practicing a skill. When you've completed whatever it is, click the date on the tracker to mark it, so you can see your progress over the course of the year. The tracker will remember days even if you close the browser window (just don't clear your cache).<br />Type <b>help</b> to display this helpful message.<br />Type anything else to add a task to the to do list. Double-click an item on the to do list to remove it."
             }
             todo_list.push(task);
             document.getElementById("input").value = "";
@@ -128,7 +343,10 @@ function update() { //everything that needs to be drawn in every frame
     }
     if (calendar_toggle) {
         drawCalendar();
-        
+    }
+    if (cartesian_grid) {
+        drawCartesianGrid();
+        cartLine(COLORS[scheme_index][4], "(2 * x) + 4"); // change to take the correct line formula and color
     }
     drawLines();
     drawPenButtons();
@@ -140,6 +358,10 @@ function update() { //everything that needs to be drawn in every frame
 
 function toggleMoon() {
     moon_toggle = !moon_toggle;
+}
+
+function toggleTracker() {
+    tracker_toggle = !tracker_toggle;
 }
 
 function flipMoon() {
@@ -157,6 +379,9 @@ function toggleCalendar() {
 function changeScheme(num) {
     if (num < 8 && num >= 0) {
         scheme_index = num;
+    }
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("theme", scheme_index);
     }
     updateToDo();
 }
@@ -483,6 +708,7 @@ function drawCalendar() {
     }
     let display = makeCalendar(mm, yyyy);
     ctx.font = "9px Arial";
+    ctx.beginPath();
     for (let i = 0; i < DAYS_ABBREVIATED.length; i++) {
         if (wd == i) {
             ctx.fillStyle = DEFAULT_BACKGROUND;
@@ -509,6 +735,7 @@ function drawCalendar() {
                 ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
                 ctx.fillStyle = COLORS[scheme_index][4];
                 if (display[i][j] == dd) {
+                    ctx.fillStyle = COLORS[scheme_index][4];
                     ctx.beginPath();
                     ctx.arc(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1 + (CALENDAR_DAY_WIDTH/2), CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1 + (CALENDAR_DAY_WIDTH/2),
                     CALENDAR_DAY_WIDTH/2, 0, 2 * Math.PI);
@@ -693,275 +920,69 @@ function makePlot(lineFunc) {
     };
 }
 
+function cartLine(color, func) {
+    let y_plotter = makePlot(func);
+    ctx.moveTo((-20.1 * 10)+ CARTORIG_X, (y_plotter(-20.1) * -10) + CARTORIG_Y);
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    for (let x = -20; x <= 20; x += 0.1) {
+        if (y_plotter(x) > -20.0 && y_plotter(x) < 20.0) {
+            ctx.lineTo((x * 10) + CARTORIG_X, (y_plotter(x) * -10) + CARTORIG_Y);
+        }
+        else {
+            ctx.stroke();
+            ctx.moveTo((x * 10) + CARTORIG_X, (y_plotter(x) * -10) + CARTORIG_Y);
+            ctx.beginPath();
+        }
+    }
+    ctx.stroke();
+}
+
 function drawCartesianGrid() {
-
+    ctx.strokeStyle = COLORS[scheme_index][0];
+    ctx.beginPath(); // box
+    ctx.rect(CARTORIG_X - (CART_SIZE / 2), CARTORIG_Y - (CART_SIZE / 2), CART_SIZE, CART_SIZE);
+    ctx.stroke();
+    ctx.beginPath(); // y-axis
+    ctx.moveTo(CARTORIG_X, CARTORIG_Y - (CART_SIZE / 2));
+    ctx.lineTo(CARTORIG_X, CARTORIG_Y + (CART_SIZE / 2));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.font = "8px Arial";
+    ctx.strokeText("0,0", CARTORIG_X + 8, CARTORIG_Y + 8);
+    ctx.stroke();
+    ctx.beginPath(); // x-axis
+    ctx.moveTo(CARTORIG_X - (CART_SIZE / 2), CARTORIG_Y);
+    ctx.lineTo(CARTORIG_X + (CART_SIZE / 2), CARTORIG_Y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(CARTORIG_X - (CART_SIZE / 4), CARTORIG_Y);
+    ctx.lineTo(CARTORIG_X - (CART_SIZE / 4), CARTORIG_Y + 5);
+    ctx.strokeText("-10", CARTORIG_X - (CART_SIZE / 4) + 10, CARTORIG_Y + 8);
+    ctx.stroke();
+    ctx.strokeText("-20", CARTORIG_X - (CART_SIZE / 2) + 10, CARTORIG_Y + 8);
+    ctx.beginPath();
+    ctx.moveTo(CARTORIG_X + (CART_SIZE / 4), CARTORIG_Y);
+    ctx.lineTo(CARTORIG_X + (CART_SIZE / 4), CARTORIG_Y + 5);
+    ctx.strokeText("10", CARTORIG_X + (CART_SIZE / 4) - 10, CARTORIG_Y + 8);
+    ctx.stroke();
+    ctx.strokeText("20", CARTORIG_X + (CART_SIZE / 2) - 10, CARTORIG_Y + 8);
+    ctx.beginPath();
+    ctx.moveTo(CARTORIG_X , CARTORIG_Y- (CART_SIZE / 4));
+    ctx.lineTo(CARTORIG_X - 5 , CARTORIG_Y - (CART_SIZE / 4));
+    ctx.strokeText("10", CARTORIG_X  - 10, CARTORIG_Y - (CART_SIZE / 4) + 8);
+    ctx.stroke();
+    ctx.strokeText("20", CARTORIG_X - 10, CARTORIG_Y - (CART_SIZE / 2) + 8);
+    ctx.beginPath();
+    ctx.moveTo(CARTORIG_X, CARTORIG_Y + (CART_SIZE / 4));
+    ctx.lineTo(CARTORIG_X -5, CARTORIG_Y + (CART_SIZE / 4));
+    ctx.strokeText("-10", CARTORIG_X - 10, CARTORIG_Y + (CART_SIZE / 4) - 8);
+    ctx.stroke();
+    ctx.strokeText("-20", CARTORIG_X - 10, CARTORIG_Y + (CART_SIZE / 2) - 8);
 }
 
-function morse_decoder(str) {
-    let input = str;
-    let output = "";
-
-    let words_output = input.replace(/0000000/g, "0, ,"); //word break
-    let letters_output = words_output.replace(/000/g, "0,"); //letter break
-    let dahs_output = letters_output.replace(/1110/g, "dah"); //decode the dahs
-    let dits_output = dahs_output.replace(/10/g, "dit"); //decode the dits
-    let word_list = dits_output.split(","); //make a list of letters
-
-    for (i = 0; i < word_list.length; i++) {
-        switch(word_list[i]) {
-            case "ditdah":
-                // ._ a
-                output += "a";
-                break;
-            case "dahditditdit":
-                // _... b
-                output += "b";
-                break;
-            case "dahditdahdit":
-                // _._. c
-                output += "c";
-                break;
-            case "dahditdit":
-                // _.. d
-                output += "d";
-                break;
-            case "dit":
-                // . e
-                output += "e";
-                break;
-            case "ditditdahdit":
-                // .._. f
-                output += "f";
-                break;
-            case "dahdahdit":
-                // __. g
-                output += "g";
-                break;
-            case "ditditditdit":
-                // .... h
-                output += "h";
-                break;
-            case "ditdit":
-                // .. i
-                output += "i";
-                break;
-            case "ditdahdahdah":
-                // .___ j
-                output += "j";
-                break;
-            case "dahditdah":
-                // _._ k
-                output += "k";
-                break;
-            case "ditdahditdit":
-                // ._.. l
-                output += "l";
-                break;
-            case "dahdah":
-                // __ m
-                output += "m";
-                break;
-            case "dahdit":
-                // _. n
-                output += "n";
-                break;
-            case "dahdahdah":
-                // ___ o
-                output += "o";
-                break;
-            case "ditdahdahdit":
-                // .__. p
-                output += "p";
-                break;
-            case "dahdahditdah":
-                // __._ q
-                output += "q";
-                break;
-            case "ditdahdit":
-                // ._. r
-                output += "r";
-                break;
-            case "ditditdit":
-                // ... s
-                output += "s";
-                break;
-            case "dah":
-                // _ t
-                output += "t";
-                break;
-            case "ditditdah":
-                // .._ u
-                output += "u";
-                break;
-            case "ditditditdah":
-                // ..._ v
-                output += "v";
-                break;
-            case "ditdahdah":
-                // .__ w
-                output += "w";
-                break;
-            case "dahditditdah":
-                // _.._ x
-                output += "x";
-                break;
-            case "dahditdahdah":
-                // _.__ y
-                output += "y";
-                break;
-            case "dahdahditdit":
-                // __.. z
-                output += "z";
-                break;
-            case "ditdahditdahditdah":
-                // ._._._ .
-                output += ".";
-                break;
-            case "dahdahditditdahdah":
-                // __..__ ,
-                output += ",";
-                break;
-            default:
-                output += " ";
-                break;
-
-        }
-    }
-    
-    return output;
-
-}
-
-function morse_encoder(str) {
-    let input = str.toString().toLowerCase();
-    let output = [];
-    let dit = [1, 0];
-    let dah = [1, 1, 1, 0];
-    let separator = [0, 0];
-
-    for (let i = 0; i < input.length; i++) {
-        switch (input[i]) {
-            case "a":
-                // ._
-                output = output.concat(dit, dah);
-                break;
-            case "b":
-                // _...
-                output = output.concat(dah, dit, dit, dit);
-                break;
-            case "c":
-                // _._.
-                output = output.concat(dah, dit, dah, dit);
-                break;
-            case "d":
-                // _..
-                output = output.concat(dah, dit, dit);
-                break;
-            case "e":
-                // .
-                output = output.concat(dit);
-                break;
-            case "f":
-                // .._.
-                output = output.concat(dit, dit, dah, dit);
-                break;
-            case "g":
-                // __.
-                output = output.concat(dah, dah, dit);
-                break;
-            case "h":
-                // ....
-                output = output.concat(dit, dit, dit, dit);
-                break;
-            case "i":
-                // ..
-                output = output.concat(dit, dit);
-                break;
-            case "j":
-                // .___
-                output = output.concat(dit, dah, dah, dah);
-                break;
-            case "k":
-                // _._
-                output = output.concat(dah, dit, dah);
-                break;
-            case "l":
-                // ._..
-                output = output.concat(dit, dah, dit, dit);
-                break;
-            case "m":
-                // __
-                output = output.concat(dah, dah);
-                break;
-            case "n":
-                // _.
-                output = output.concat(dah, dit);
-                break;
-            case "o":
-                // ___
-                output = output.concat(dah, dah, dah);
-                break;
-            case "p":
-                // .__.
-                output = output.concat(dit, dah, dah, dit);
-                break;
-            case "q":
-                // __._
-                output = output.concat(dah, dah, dit, dah);
-                break;
-            case "r":
-                // ._.
-                output = output.concat(dit, dah, dit);
-                break;
-            case "s":
-                // ...
-                output = output.concat(dit, dit, dit);
-                break;
-            case "t":
-                // _
-                output = output.concat(dah);
-                break;
-            case "u":
-                // .._
-                output = output.concat(dit, dit, dah);
-                break;
-            case "v":
-                // ..._
-                output = output.concat(dit, dit, dit, dah);
-                break;
-            case "w":
-                // .__
-                output = output.concat(dit, dah, dah);
-                break;
-            case "x":
-                // _.._
-                output = output.concat(dah, dit, dit, dah);
-                break;
-            case "y":
-                // _.__
-                output = output.concat(dah, dit, dah, dah);
-                break;
-            case "z":
-                // __..
-                output = output.concat(dah, dah, dit, dit);
-                break;
-            case ".":
-                // ._._._
-                output = output.concat(dit, dah, dit, dah, dit, dah);
-                break;
-            case ",":
-                // __..__
-                output = output.concat(dah, dah, dit, dit, dah, dah);
-                break;
-            case " ":
-                output = output.concat(separator);
-                break;
-                
-        }
-        output = output.concat(separator);
-    }
-    return output.join("");
-}
+initTracker();
+initToDo();
 
 canv.onmousedown = sbDrag;
 canv.onmouseup = sbDrop;
