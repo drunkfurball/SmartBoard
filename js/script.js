@@ -42,6 +42,7 @@ let label_dragging = false;
 let pen_selecting = false;
 let rightnow = new Date();
 let todo_list = [];
+let cart_lines = [];
 let moon_toggle = true;
 let flip_the_moon = false;
 let calendar_toggle = true;
@@ -78,8 +79,13 @@ for (let i = 0; i < COLORS[scheme_index].length; i++) { //set up the pens
 function initToDo() {
     let task;
     task = {
-    color: (selected_pen == 7? 6: selected_pen),
-    description: "<div id='tracker'></div>"
+        color: (selected_pen == 7? 6: selected_pen),
+        description: "<div id='tracker'></div>"
+    }
+    todo_list.push(task);
+    task = {
+        color: (selected_pen == 7? 6: selected_pen),
+        description: "<div id='graph-list'></div>"
     }
     todo_list.push(task);
     updateToDo();
@@ -95,7 +101,7 @@ function updateToDo() {
     output += "<style>.marked{background-color: " + COLORS[scheme_index][2] + ";}</style>"
     todo.innerHTML = output;
     for (let i = 0; i < todo_list.length; i++) {
-        if (i != 0) {
+        if (i > 1) {
             document.getElementById('task-' + i).addEventListener("dblclick", function(){
                 todo_list.splice(i, 1);
                 updateToDo();
@@ -104,6 +110,9 @@ function updateToDo() {
     }
     if (tracker_toggle) {
         updateTracker();
+    }
+    if (cartesian_grid) {
+        updateGraphList();
     }
 }
 
@@ -223,6 +232,34 @@ function initTracker() {
     }
 }
 
+function updateGraphList() {
+    let graphForm = document.getElementById("graph-list");
+    let output = "<form><label for='fomula'>Y = </label><input name='formula' id='formula' type='text' size='10' /><button type='button' id='plot-btn'>Plot</button></form><br />";
+    for (let i = 0; i < cart_lines.length; i++) {
+        output += "<div id='graph-" + i + "' style='margin:3px;padding:3px;border: 1px solid " + COLORS[scheme_index][cart_lines[i].color] +";color:" + COLORS[scheme_index][cart_lines[i].color] + ";'>" + cart_lines[i].description + "</div>";
+    }
+    graphForm.innerHTML = output;
+    document.getElementById("plot-btn").addEventListener("click", function() {
+        addGraphFormula(document.getElementById("formula").value);
+    });
+    for (let i = 0; i < cart_lines.length; i++) {
+        document.getElementById('graph-' + i).addEventListener("dblclick", function(){
+            cart_lines.splice(i, 1);
+            updateGraphList();
+        });
+    }
+}
+
+function addGraphFormula(descrip) {
+    formula = {
+        color: (selected_pen == 7? 6: selected_pen),
+        description: descrip
+    };
+    cart_lines.push(formula);
+    document.getElementById("formula").value = "";
+    updateGraphList();
+}
+
 function updateTracker() {
     var calendar = document.getElementById("tracker");
     var output = "<table><tr>";
@@ -250,9 +287,7 @@ function updateTracker() {
     }
     output += "</table>";
     calendar.innerHTML = output;
-    
     let cells = document.getElementsByClassName("cal");
-    //console.log(cells);
     let patt = /\d{1,}/g;
     for (let i = 0; i < cells.length; i++) {//add onclick
         cells[i].onclick = function(e){
@@ -287,6 +322,9 @@ function addTask(descrip) {
             break;
         case "tracker":
             toggleTracker();
+            break;
+        case "graph":
+            toggleCartGraph();
             break;
         case "theme 1":
             changeScheme(0);
@@ -346,7 +384,9 @@ function update() { //everything that needs to be drawn in every frame
     }
     if (cartesian_grid) {
         drawCartesianGrid();
-        cartLine(COLORS[scheme_index][4], "(2 * x) + 4"); // change to take the correct line formula and color
+        for (let h = 0; h < cart_lines.length; h++) {
+            cartLine(COLORS[scheme_index][cart_lines[h].color], cart_lines[h].description);
+        }            
     }
     drawLines();
     drawPenButtons();
@@ -356,6 +396,9 @@ function update() { //everything that needs to be drawn in every frame
     }
 }
 
+function toggleCartGraph() {
+    cartesian_grid = !cartesian_grid;
+}
 function toggleMoon() {
     moon_toggle = !moon_toggle;
 }
