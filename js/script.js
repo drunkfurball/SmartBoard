@@ -76,6 +76,27 @@ for (let i = 0; i < COLORS[scheme_index].length; i++) { //set up the pens
     }
 }
 
+if (typeof(Storage) !== "undefined") {//see if settings were changed previously by the user
+    if (localStorage.getItem("moon_toggle")){
+        moon_toggle = (localStorage.getItem("moon_toggle")=="true"?true:false);
+    }
+    if (localStorage.getItem("moon_toggle")){
+        flip_the_moon = (localStorage.getItem("flip_the_moon")=="true"?true:false);
+    }
+    if (localStorage.getItem("moon_toggle")){
+        calendar_toggle = (localStorage.getItem("calendar_toggle")=="true"?true:false);
+    }
+    if (localStorage.getItem("moon_toggle")){
+        clock_toggle = (localStorage.getItem("clock_toggle")=="true"?true:false);
+    }
+    if (localStorage.getItem("moon_toggle")){
+        cartesian_grid = (localStorage.getItem("cartesian_grid")=="true"?true:false);
+    }
+    if (localStorage.getItem("moon_toggle")){
+        tracker_toggle = (localStorage.getItem("tracker_toggle")=="true"?true:false);
+    }
+}
+
 function initToDo() {
     let task;
     task = {
@@ -281,7 +302,6 @@ function updateTracker() {
                 output += "<td id='cal-" + x + "-" + y
                   + "' class='cal'>" + y + "</td>";
             }
-            
         }
         output += "</tr>";
     }
@@ -303,7 +323,6 @@ function updateTracker() {
             localStorage.setItem(tracker[i][0], tracker[i].slice(1,tracker[i].length).join());
         }
     }
-    
 }
 
 function addTask(descrip) {
@@ -354,20 +373,87 @@ function addTask(descrip) {
             task = {
                 color: (selected_pen == 7? 6: selected_pen),
                 description: "Welcome to the <br /><b>Smart Board</b> by Murph Strange<br /><br />Type <b>clock</b> to enable/disable the clock display.<br />Type <b>moon</b> to enable/disable the moon phase indicator.<br />If you live in the Southern Hemisphere, and want the moon oriented to reflect your view of the moon, type <b>flip the moon</b>.<br />Type <b>calendar</b> to enable/disable the calendar display.<br />Type <b>theme #</b>, but replace the # with a number between 1 and 8 to select a color theme. Theme changes are remembered by your browser (unless you clear the cache). The themes are as follows:<br /><br /><b>1</b> Classic<br /><b>2</b> Classic - Dark Mode<br /><b>3</b> Red<br /><b>4</b> Red - Dark Mode<br /><b>5</b> Green<br /><b>6</b> Green - Dark Mode<br /><b>7</b> Blue<br /><b>8</b> Blue - Dark Mode<br /><br />Type <b>tracker</b> to show/hide the habit tracker at the top of the to do list. It's a little calendar that you can use to track the completion of a daily routine item you want to make a habit. Like exercising. Or practicing a skill. When you've completed whatever it is, click the date on the tracker to mark it, so you can see your progress over the course of the year. The tracker will remember days even if you close the browser window (just don't clear your cache. Habit tracker based on similar, but better, idea by <a href='http://www.simonegiertz.com/' target='_blank'>Simone Giertz</a>, you should totally see what she's up to, it's probably hilariously brilliant).<br />Oh, did you need a graphing calculator? Type <b>graph</b> to enable/disable the built in Graphing Calculator! Couple things, it uses computer math, so 2x is written like (2*x) with an asterisk and the whole thing in parenthesis. Same with exponents, x to the second power is written as (x**2), with a double asterisk. Enjoy experimenting with that! Scale for the graph is fixed at a range of -20 to 20 on either axis, with no zoom, so it is only really going to help with some very basic high school algebra.<br />Type <b>help</b> to display this helpful message.<br />Type anything else to add a task to the to do list. Double-click an item on the to do list to remove it."
-            }
+            };
             todo_list.push(task);
             document.getElementById("input").value = "";
             break;
         default:
             task = {
                 color: (selected_pen == 7? 6: selected_pen),
-                description: descrip
+                description: descrip,
+                date: null,
+                alarm: false,
             };
+            if (document.getElementById("schedule").checked) {
+                let mm_sel = document.getElementById("month").options[document.getElementById("month").selectedIndex].value;
+                let dd_sel = document.getElementById("date").options[document.getElementById("date").selectedIndex].value;
+                let hh_sel = document.getElementById("hour").options[document.getElementById("hour").selectedIndex].value;
+                let mn_sel = document.getElementById("minute").options[document.getElementById("minute").selectedIndex].value;
+                let mr_sel = document.getElementById("meridian").options[document.getElementById("meridian").selectedIndex].value;
+                let dt = new Date(
+                    (rightnow.getMonth()<Number(mm_sel)||(rightnow.getMonth()==Number(mm_sel)&&rightnow.getDate()<Number(dd_sel))?rightnow.getFullYear()+1:rightnow.getFullYear()),
+                    Number(mm_sel),
+                    Number(dd_sel),
+                    (mr_sel=="1"?Number(hh_sel)+12:Number(hh_sel)),
+                    Number(mn_sel),
+                    0);
+                task.date = dt;
+                task.alarm = document.getElementById("alarm").checked;
+            }
             todo_list.push(task);
             document.getElementById("input").value = "";
             break;
     }
     updateToDo();
+}
+
+function scheduleSelected() {
+    let scheduled = document.getElementById("schedule");
+    if (scheduled.checked) {
+        document.getElementById("month").removeAttribute('disabled');
+        document.getElementById("date").removeAttribute('disabled');
+        document.getElementById("hour").removeAttribute('disabled');
+        document.getElementById("minute").removeAttribute('disabled');
+        document.getElementById("meridian").removeAttribute('disabled');
+        document.getElementById("alarm").removeAttribute('disabled');
+    }
+    else {
+        document.getElementById("month").setAttribute("disabled", "true");
+        document.getElementById("date").setAttribute("disabled", "true");
+        document.getElementById("hour").setAttribute("disabled", "true");
+        document.getElementById("minute").setAttribute("disabled", "true");
+        document.getElementById("meridian").setAttribute("disabled", "true");
+        document.getElementById("alarm").setAttribute("disabled", "true");
+    }
+}
+
+function selectionDateFixer() {
+    let mm = document.getElementById("month");
+    let days_sel = document.getElementById("date");
+    let days = 29;
+    switch(mm.options[mm.selectedIndex].value) {
+        case '0':
+        case '2':
+        case '4':
+        case '6':
+        case '7':
+        case '9':
+        case '11':
+            days = 31
+            break;
+        case '3':
+        case '5':
+        case '8':
+        case '10':
+            days = 30
+            break;
+    }
+    while (days_sel.options.length) {
+        days_sel.options.remove(0);
+    }
+    for (let i = 1; i <= days; i++) {
+        days_sel.options.add(new Option(i, i));
+    }
 }
 
 function update() { //everything that needs to be drawn in every frame
@@ -398,25 +484,44 @@ function update() { //everything that needs to be drawn in every frame
 
 function toggleCartGraph() {
     cartesian_grid = !cartesian_grid;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("cartesian_grid", cartesian_grid);
+    }
 }
+
 function toggleMoon() {
     moon_toggle = !moon_toggle;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("moon_toggle", moon_toggle);
+    }
 }
 
 function toggleTracker() {
     tracker_toggle = !tracker_toggle;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("tracker_toggle", tracker_toggle);
+    }
 }
 
 function flipMoon() {
     flip_the_moon = !flip_the_moon;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("flip_the_moon", flip_the_moon);
+    }
 }
 
 function toggleClock() {
     clock_toggle = !clock_toggle;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("clock_toggle", clock_toggle);
+    }
 }
 
 function toggleCalendar() {
     calendar_toggle = ! calendar_toggle;
+    if (typeof(Storage) !== "undefined") {
+        localStorage.setItem("calendar_toggle", calendar_toggle);
+    }
 }
 
 function changeScheme(num) {
@@ -1026,6 +1131,5 @@ function drawCartesianGrid() {
 
 initTracker();
 initToDo();
-
 canv.onmousedown = sbDrag;
 canv.onmouseup = sbDrop;

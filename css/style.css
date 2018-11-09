@@ -23,7 +23,7 @@ canvas {
 #todo-list {
     display: block;
     width: 100%;
-    height: 650px;
+    height: 630px;
     overflow-y: scroll;
 }
 
@@ -39,4 +39,33 @@ table {
 
 td {
     border-radius: 50%;
+}
+
+#month {
+    margin-right: 0px;
+    float: left;
+}
+
+#date {
+    margin-left: 0px;
+    float: left;
+}
+
+#hour {
+    margin-right: 0px;
+    margin-left: 0px;
+    float: left;
+}
+
+#minute {
+    margin-right: 0px;
+    margin-left: 0px;
+    float: left;
+    
+}
+
+#meridian {
+    margin-right: 0px;
+    margin-left: 0px;
+    float: left;
 }
