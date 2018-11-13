@@ -882,6 +882,18 @@ function drawCalendar() {
                 ctx.fillStyle = DEFAULT_BACKGROUND;
                 ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
                 ctx.fillStyle = COLORS[scheme_index][4];
+                for (let q = 2; q < todo_list.length; q++) {
+                    if (todo_list[q].date != undefined) {
+                        let marker = new Date(todo_list[q].date);
+                        if (marker.getDate() == display[i][j] && marker.getMonth() + 1 == mm) {
+                            ctx.fillStyle = COLORS[scheme_index][todo_list[q].color];
+                            ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
+                            ctx.fillStyle = DEFAULT_BACKGROUND;
+                            ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 4, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 4, CALENDAR_DAY_WIDTH - 6, CALENDAR_DAY_WIDTH - 6);
+                            ctx.fillStyle = COLORS[scheme_index][4];
+                        }
+                    }
+                }
                 if (display[i][j] == dd) {
                     ctx.fillStyle = COLORS[scheme_index][4];
                     ctx.beginPath();
