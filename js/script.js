@@ -109,6 +109,20 @@ function initToDo() {
         description: "<div id='graph-list'></div>"
     }
     todo_list.push(task);
+    if (typeof(Storage) != undefined) {
+        if (localStorage.getItem("todo_index")) {
+            let todo_index = Number(localStorage.getItem("todo_index"));
+            for (let i = 2; i < todo_index; i++) {
+                task = {
+                    color: Number(localStorage.getItem("todo-"+i+"-color")),
+                    description: localStorage.getItem("todo-"+i+"-descrip"),
+                    date: (localStorage.getItem("todo-"+i+"-date")!="null"?new Date(localStorage.getItem("todo-"+i+"-date")):null),
+                    alarm: (localStorage.getItem("todo-"+i+"-alarm")=="true"?true:false)
+                };
+                todo_list.push(task);
+            }
+        }
+    }
     updateToDo();
 }
 
@@ -126,6 +140,10 @@ function updateToDo() {
             document.getElementById('task-' + i).addEventListener("dblclick", function(){
                 todo_list.splice(i, 1);
                 updateToDo();
+                localStorage.removeItem("todo-"+(todo_list.length)+"-color"); 
+                localStorage.removeItem("todo-"+(todo_list.length)+"-descrip");
+                localStorage.removeItem("todo-"+(todo_list.length)+"-date");
+                localStorage.removeItem("todo-"+(todo_list.length)+"-alarm");
             });
         }
     }
@@ -134,6 +152,16 @@ function updateToDo() {
     }
     if (cartesian_grid) {
         updateGraphList();
+    }
+    if (typeof(Storage) != undefined) {
+        localStorage.setItem("todo_index", todo_list.length);
+        let todo_index = Number(localStorage.getItem("todo_index"));
+        for (let i = 2; i < todo_index; i++) {
+            localStorage.setItem("todo-"+i+"-color", todo_list[i].color); 
+            localStorage.setItem("todo-"+i+"-descrip", todo_list[i].description);
+            localStorage.setItem("todo-"+i+"-date", (todo_list[i].date!=null?todo_list[i].date.toString():null));
+            localStorage.setItem("todo-"+i+"-alarm", todo_list[i].alarm);
+        }
     }
 }
 
@@ -882,11 +910,11 @@ function drawCalendar() {
                 ctx.fillStyle = DEFAULT_BACKGROUND;
                 ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
                 ctx.fillStyle = COLORS[scheme_index][4];
-                for (let q = 2; q < todo_list.length; q++) {
-                    if (todo_list[q].date != undefined) {
-                        let marker = new Date(todo_list[q].date);
+                for (let k = 2; k < todo_list.length; k++) {
+                    if (todo_list[k].date != null) {
+                        let marker = new Date(todo_list[k].date);
                         if (marker.getDate() == display[i][j] && marker.getMonth() + 1 == mm) {
-                            ctx.fillStyle = COLORS[scheme_index][todo_list[q].color];
+                            ctx.fillStyle = COLORS[scheme_index][todo_list[k].color];
                             ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 1, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 1, CALENDAR_DAY_WIDTH, CALENDAR_DAY_WIDTH);
                             ctx.fillStyle = DEFAULT_BACKGROUND;
                             ctx.fillRect(CALENDAR_ORIGIN.x + ((CALENDAR_DAY_WIDTH + 1) * j) + 4, CALENDAR_ORIGIN.y + ((CALENDAR_DAY_WIDTH + 1) * i) + 4, CALENDAR_DAY_WIDTH - 6, CALENDAR_DAY_WIDTH - 6);
